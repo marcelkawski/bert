@@ -39,6 +39,27 @@ def compile_model(model):
     model.compile(optimizer=optimizer, loss=loss, metrics=[metric])
 
 
+def plot_learning_process(learning_process):
+    acc = learning_process.history['accuracy']
+    val_acc = learning_process.history['val_accuracy']
+    loss = learning_process.history['loss']
+    val_loss = learning_process.history['val_loss']
+    x = range(1, len(acc) + 1)
+
+    plt.figure(figsize=(12, 5))
+    plt.subplot(1, 2, 1)
+    plt.plot(x, acc, 'b', label='training')
+    plt.plot(x, val_acc, 'r', label='validation')
+    plt.title('Training and validation accuracy')
+    plt.legend()
+
+    plt.subplot(1, 2, 2)
+    plt.plot(x, loss, 'b', label='training')
+    plt.plot(x, val_loss, 'r', label='validation')
+    plt.title('Training and validation loss')
+    plt.legend()
+
+
 if __name__ == "__main__":
     data_file_path = utils.get_data_file_name()
     _data = clean_data(load_data(data_file_path))
@@ -59,4 +80,6 @@ if __name__ == "__main__":
     _model = TFBertForSequenceClassification.from_pretrained('bert-base-multilingual-cased')
     compile_model(_model)
 
-    _model.fit(bert_train_data, validation_data=bert_test_data, epochs=3)
+    # TODO: workaround
+    _learning_process = _model.fit(bert_train_data, validation_data=bert_test_data, epochs=values.epochs)
+    plot_learning_process(_learning_process)

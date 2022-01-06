@@ -11,6 +11,8 @@ learning_rate = 2e-5
 epsilon = 1e-08
 clipnorm = 1.0
 
+epochs = 3
+
 languages = ['en', 'hi', 'de', 'fr']
 convert_langs_vals = {
     'en': {
