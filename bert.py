@@ -111,7 +111,7 @@ if __name__ == "__main__":
     print('x_val shape: {}'.format(x_test[0].shape))
 
     train_ds = tf.data.Dataset.from_tensor_slices((x_train[0], x_train[1], x_train[2], y_train)).map(
-        example_to_features).shuffle(100).batch(32)
+        example_to_features).shuffle(100).batch(16)
     test_ds = tf.data.Dataset.from_tensor_slices((x_test[0], x_test[1], x_test[2], y_test)).map(example_to_features).batch(
         64)
 
