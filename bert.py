@@ -103,7 +103,6 @@ if __name__ == "__main__":
     _model = TFBertForSequenceClassification.from_pretrained('bert-base-multilingual-cased')
     compile_model(_model)
 
-    # TODO: fix workaround
     x_train, y_train = my_solution(bert_train_data)
     x_test, y_test = my_solution(bert_test_data)
 
@@ -118,4 +117,4 @@ if __name__ == "__main__":
     print('Format of model input examples: {} '.format(train_ds.take(1)))
 
     history = _model.fit(train_ds, validation_data=test_ds, epochs=values.epochs)
-    # plot_learning_process(history)
+    plot_learning_process(history)
