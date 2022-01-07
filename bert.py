@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import tensorflow as tf
-import matplotlib as plt
+import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from transformers import BertTokenizer, InputExample, glue_convert_examples_to_features, TFBertForSequenceClassification
 
@@ -92,7 +92,13 @@ if __name__ == "__main__":
     negatives = _data.loc[_data.label == 0]
     print('\n\n', 'Positive examples: {}  Negative examples: {}'.format(len(positives), len(negatives)))
 
+    # ustalanie rozmiarow zbiorow
     train_data, test_data = split_data(_data)
+    train_data, test_data = split_data(test_data)
+    train_data, test_data = split_data(test_data)
+    train_data, test_data = split_data(test_data)
+    train_data, test_data = split_data(train_data)
+    train_data, test_data = split_data(train_data)
 
     train_input_examples = convert_data_into_input_examples(train_data)
     test_input_examples = convert_data_into_input_examples(test_data)
