@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import tensorflow as tf
 import matplotlib as plt
 from sklearn.model_selection import train_test_split
@@ -61,6 +62,27 @@ def plot_learning_process(learning_process):
     plt.legend()
 
 
+def my_solution(bdset):
+    input_ids, attention_mask, token_type_ids, label = [], [], [], []
+    for in_ex in bdset:
+        input_ids.append(in_ex.input_ids)
+        attention_mask.append(in_ex.attention_mask)
+        token_type_ids.append(in_ex.token_type_ids)
+        label.append(in_ex.label)
+
+    input_ids = np.vstack(input_ids)
+    attention_mask = np.vstack(attention_mask)
+    token_type_ids = np.vstack(token_type_ids)
+    label = np.vstack(label)
+    return [input_ids, attention_mask, token_type_ids], label
+
+
+def example_to_features(input_ids, attention_masks, token_type_ids, y):
+    return {"input_ids": input_ids,
+            "attention_mask": attention_masks,
+            "token_type_ids": token_type_ids}, y
+
+
 if __name__ == "__main__":
     data_file_path = utils.get_data_file_name()
     _data = clean_data(load_data(data_file_path))
@@ -81,10 +103,19 @@ if __name__ == "__main__":
     _model = TFBertForSequenceClassification.from_pretrained('bert-base-multilingual-cased')
     compile_model(_model)
 
-    print(bert_train_data)
+    # TODO: fix workaround
+    x_train, y_train = my_solution(bert_train_data)
+    x_test, y_test = my_solution(bert_test_data)
 
-    # TODO: workaround
-    # _learning_process = _model.fit(bert_train_data, validation_data=bert_test_data, epochs=values.epochs)
-    # plot_learning_process(_learning_process)
+    print('x_train shape: {}'.format(x_train[0].shape))
+    print('x_val shape: {}'.format(x_test[0].shape))
 
+    train_ds = tf.data.Dataset.from_tensor_slices((x_train[0], x_train[1], x_train[2], y_train)).map(
+        example_to_features).shuffle(100).batch(32)
+    test_ds = tf.data.Dataset.from_tensor_slices((x_test[0], x_test[1], x_test[2], y_test)).map(example_to_features).batch(
+        64)
 
+    print('Format of model input examples: {} '.format(train_ds.take(1)))
+
+    history = _model.fit(train_ds, validation_data=test_ds, epochs=values.epochs)
+    # plot_learning_process(history)
