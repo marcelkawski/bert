@@ -8,20 +8,52 @@ from transformers import BertTokenizer, InputExample, glue_convert_examples_to_f
 import utils
 import values
 
+import argparse
+
+# Instantiate the parser
+parser = argparse.ArgumentParser()
+
+parser.add_argument('--data_used', type=float,
+                    help='percent_of_data_used')
+
+parser.add_argument('--data_ratio', type=float,
+                    help='data_test_to_train_ratio')
+
+parser.add_argument('--max_seq', type=int,
+                    help='max_seq_length')
+
+parser.add_argument('--train_batch', type=int,
+                    help='train_batch_size')
+
+parser.add_argument('--test_batch', type=int,
+                    help='test_batch_size')
+
+parser.add_argument('--epochs', type=int,
+                    help='epochs')
+
+args = parser.parse_args()
+
+values.percent_of_data_used = args.data_used
+values.data_test_to_train_ratio = args.data_ratio
+values.MAX_SEQ_LENGTH = args.max_seq
+values.train_batch_size = args.train_batch
+values.test_batch_size = args.test_batch
+values.epochs = args.epochs
+
 
 def load_data(file_name):
     return pd.read_csv(file_name)
 
 
 def clean_data(data):
-    return data[data['text'].map(len) < 512]
+    return data[data['text'].map(len) < values.MAX_SEQ_LENGTH]
 
 
 def convert_data_into_input_examples(data):
     return [InputExample(guid=None, text_a=row.text, text_b=None, label=row.label) for _, row in data.iterrows()]
 
 
-def split_data(data, ratio=values.data_split_ratio):
+def split_data(data, ratio=values.data_test_to_train_ratio):
     return train_test_split(data, test_size=ratio)
 
 
@@ -61,8 +93,10 @@ def plot_learning_process(learning_process):
     plt.title('Training and validation loss')
     plt.legend()
 
+    plt.show()
 
-def my_solution(bdset):
+
+def create_input(bdset):
     input_ids, attention_mask, token_type_ids, label = [], [], [], []
     for in_ex in bdset:
         input_ids.append(in_ex.input_ids)
@@ -92,13 +126,8 @@ if __name__ == "__main__":
     negatives = _data.loc[_data.label == 0]
     print('\n\n', 'Positive examples: {}  Negative examples: {}'.format(len(positives), len(negatives)))
 
-    # ustalanie rozmiarow zbiorow
-    train_data, test_data = split_data(_data)
-    train_data, test_data = split_data(test_data)
-    train_data, test_data = split_data(test_data)
-    train_data, test_data = split_data(test_data)
-    train_data, test_data = split_data(train_data)
-    train_data, test_data = split_data(train_data)
+    junk_data, used_data = split_data(_data, values.percent_of_data_used)
+    train_data, test_data = split_data(used_data)
 
     train_input_examples = convert_data_into_input_examples(train_data)
     test_input_examples = convert_data_into_input_examples(test_data)
@@ -109,16 +138,16 @@ if __name__ == "__main__":
     _model = TFBertForSequenceClassification.from_pretrained('bert-base-multilingual-cased')
     compile_model(_model)
 
-    x_train, y_train = my_solution(bert_train_data)
-    x_test, y_test = my_solution(bert_test_data)
+    x_train, y_train = create_input(bert_train_data)
+    x_test, y_test = create_input(bert_test_data)
 
     print('x_train shape: {}'.format(x_train[0].shape))
     print('x_val shape: {}'.format(x_test[0].shape))
 
     train_ds = tf.data.Dataset.from_tensor_slices((x_train[0], x_train[1], x_train[2], y_train)).map(
-        example_to_features).shuffle(100).batch(16)
+        example_to_features).shuffle(100).batch(values.train_batch_size)
     test_ds = tf.data.Dataset.from_tensor_slices((x_test[0], x_test[1], x_test[2], y_test)).map(example_to_features).batch(
-        64)
+        values.test_batch_size)
 
     print('Format of model input examples: {} '.format(train_ds.take(1)))
 

@@ -2,9 +2,13 @@ data_files_dir = 'data'
 unprocessed_data_file_name = 'data-en-hi-de-fr.csv'
 processed_data_file_name = 'data.csv'
 
-data_split_ratio = 0.2
+percent_of_data_used = 0.1
+data_test_to_train_ratio = 0.2
 MAX_SEQ_LENGTH = 512
 labels_list = [0, 1]
+
+train_batch_size = 16
+test_batch_size = 64
 
 # optimizer
 learning_rate = 2e-5
